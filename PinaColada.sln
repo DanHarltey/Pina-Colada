@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PinaColada", "src\PinaColada\PinaColada.csproj", "{4DD7A542-7A3F-4BDB-899C-FDFD19993466}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4DD7A542-7A3F-4BDB-899C-FDFD19993466}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DD7A542-7A3F-4BDB-899C-FDFD19993466}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DD7A542-7A3F-4BDB-899C-FDFD19993466}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DD7A542-7A3F-4BDB-899C-FDFD19993466}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A7C0D23F-D535-4960-95AF-AF51C052AE5B}
+	EndGlobalSection
+EndGlobal
