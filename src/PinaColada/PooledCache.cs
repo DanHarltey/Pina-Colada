@@ -13,60 +13,32 @@ namespace PinaColada
 
         public async Task<T> Fetch<T>(string cacheKey, Func<Task<T>> createAction, TimeSpan? ttl)
         {
-            var completionSource = new TaskCompletionSource<T>();
-            var createdTask = completionSource.Task;// (this.GetOrSet, new CacheRequest(cacheKey, createAction, ttl));
+            var createdTask = new Task<Task<T>>(GetOrSet<T>, (object)new CacheRequest<T>(cacheKey, createAction, ttl))
+                .Unwrap();
 
-            var pooledTask = _requestPool.GetOrAdd(cacheKey, (Task)null);
+            //var completionSource = new TaskCompletionSource<T>();
+            //var createdTask = completionSource.Task;// (this.GetOrSet, new CacheRequest(cacheKey, createAction, ttl));
+
+            var pooledTask = _requestPool.GetOrAdd(cacheKey, createdTask);
 
             if (createdTask == pooledTask)
             {
                 // we added the task
                 try
                 {
-                    var complete = await GetOrSet<T>(new CacheRequest<T>(cacheKey, createAction, ttl));
-                    completionSource.SetResult(complete);
+                    createdTask.Start();
+                    return await createdTask;
                 }
                 finally
                 {
                     // we most remove it
                     _requestPool.TryRemove(cacheKey, out _);
                 }
-                return null;
             }
             else
             {
                 return await (Task<T>)pooledTask;
             }
-        }
-
-        private Task<T> GetOrSet2<T>(object obj)
-        {
-            var cacheRequest = (CacheRequest<T>)obj;
-
-            var cacheTask = _cache.Get<T>(cacheRequest.CacheKey);
-
-            T CacheMiss(Task<(bool, T)> input)
-            {
-                if (input.Result.Item1)
-                {
-                    return input.Result.Item2;
-                }
-                else
-                {
-                    return cacheRequest.CreateAction();
-                }
-            };
-
-            var returnThisOne = cacheTask.ContinueWith(CacheMiss);
-
-
-            //var createdObj = await cacheRequest.CreateAction();
-
-            //// use a different thread
-            //await _cache.Set(createdObj, cacheRequest.TTL);
-
-            //return createdObj;
-            return returnThisOne;
         }
 
         private async Task<T> GetOrSet<T>(object obj)
@@ -82,7 +54,7 @@ namespace PinaColada
 
             var createdObj = await cacheRequest.CreateAction();
 
-            // use a different thread
+            //TODO use a different thread
             await _cache.Set(createdObj, cacheRequest.TTL);
 
             return createdObj;
