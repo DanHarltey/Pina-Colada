@@ -13,11 +13,8 @@ namespace PinaColada
 
         public async Task<T> Fetch<T>(string cacheKey, Func<Task<T>> createAction, TimeSpan? ttl)
         {
-            var createdTask = new Task<Task<T>>(GetOrSet<T>, (object)new CacheRequest<T>(cacheKey, createAction, ttl))
+            var createdTask = new Task<Task<T>>(GetOrSet<T>, new CacheRequest<T>(cacheKey, createAction, ttl))
                 .Unwrap();
-
-            //var completionSource = new TaskCompletionSource<T>();
-            //var createdTask = completionSource.Task;// (this.GetOrSet, new CacheRequest(cacheKey, createAction, ttl));
 
             var pooledTask = _requestPool.GetOrAdd(cacheKey, createdTask);
 
