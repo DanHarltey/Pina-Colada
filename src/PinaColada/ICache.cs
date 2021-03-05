@@ -9,6 +9,6 @@ namespace PinaColada
     {
         // this needs to be try get or something
         Task<(bool, T)> Get<T>(string cacheKey);
-        Task Set<T>(T obj, TimeSpan? ttl);
+        Task Set<T>(string cacheKey, T obj, TimeSpan? ttl);
     }
 }

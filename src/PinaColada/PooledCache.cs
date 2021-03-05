@@ -9,7 +9,12 @@ namespace PinaColada
     public class PooledCache : IPooledCache
     {
         private readonly ConcurrentDictionary<string, Task> _requestPool = new ConcurrentDictionary<string, Task>();
-        private readonly ICache _cache = (ICache)new object();
+        private readonly ICache _cache;
+
+        public PooledCache(ICache cache)
+        {
+            _cache = cache;
+        }
 
         public async Task<T> Fetch<T>(string cacheKey, Func<Task<T>> createAction, TimeSpan? ttl)
         {
@@ -52,7 +57,7 @@ namespace PinaColada
             var createdObj = await cacheRequest.CreateAction();
 
             //TODO use a different thread
-            await _cache.Set(createdObj, cacheRequest.TTL);
+            await _cache.Set(cacheRequest.CacheKey, createdObj, cacheRequest.TTL);
 
             return createdObj;
         }
