@@ -18,18 +18,18 @@ namespace PinaColada
 
         public async Task<T> Fetch<T>(string cacheKey, Func<Task<T>> createAction, TimeSpan? ttl)
         {
-            var createdTask = new Task<Task<T>>(GetOrSet<T>, new CacheRequest<T>(cacheKey, createAction, ttl))
-                .Unwrap();
+            var createdTask = new Task<Task<T>>(GetOrSet<T>, new CacheRequest<T>(cacheKey, createAction, ttl));
+            var createdTask2 = createdTask.Unwrap();
 
-            var pooledTask = _requestPool.GetOrAdd(cacheKey, createdTask);
+            var pooledTask = _requestPool.GetOrAdd(cacheKey, createdTask2);
 
-            if (createdTask == pooledTask)
+            if (createdTask2 == pooledTask)
             {
                 // we added the task
                 try
                 {
                     createdTask.Start();
-                    return await createdTask;
+                    return await createdTask2;
                 }
                 finally
                 {
