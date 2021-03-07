@@ -70,7 +70,7 @@ namespace PinaColada.Tests
                 {
                     await Task.Delay(_delayTime);
                 }
-                return Task.FromResult((object)_counter++);
+                return _counter++;
             }
         }
     }
