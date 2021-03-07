@@ -52,14 +52,84 @@ namespace PinaColada.Tests
             Assert.Equal(1, testFetch.Counter);
         }
 
+        [Fact]
+        public async Task KeyRemovedFromPoolOnFetchException()
+        {
+            PooledCache cache = new PooledCache(new TestDictionaryCache());
+            var testFetch = new TestFecth(throwException: true);
+
+            await Assert.ThrowsAsync<Exception>(() => cache.Fetch("test1", testFetch.Fetch, null));
+            await Assert.ThrowsAsync<Exception>(() => cache.Fetch("test1", testFetch.Fetch, null));
+
+            Assert.Equal(2, testFetch.Counter);
+        }
+
+        [Fact]
+        public async Task KeyRemovedFromPoolOnGetException()
+        {
+            PooledCache cache = new PooledCache(new TestDictionaryCache(throwOnGet: true));
+            var testFetch = new TestFecth(throwException: true);
+
+            await Assert.ThrowsAsync<Exception>(() => cache.Fetch("test1", testFetch.Fetch, null));
+            await Assert.ThrowsAsync<Exception>(() => cache.Fetch("test1", testFetch.Fetch, null));
+
+            Assert.Equal(2, testFetch.Counter);
+        }
+
+        [Fact]
+        public async Task KeyRemovedFromPoolOnSetException()
+        {
+            PooledCache cache = new PooledCache(new TestDictionaryCache(throwOnSet: true));
+            var testFetch = new TestFecth(throwException: true);
+
+            await Assert.ThrowsAsync<Exception>(() => cache.Fetch("test1", testFetch.Fetch, null));
+            await Assert.ThrowsAsync<Exception>(() => cache.Fetch("test1", testFetch.Fetch, null));
+
+            Assert.Equal(2, testFetch.Counter);
+        }
+
+        [Fact]
+        public async Task PoolReturnsFetchException()
+        {
+            PooledCache cache = new PooledCache(new TestDictionaryCache());
+            var testFetch = new TestFecth(delayTime: 500, throwException: true);
+
+            var actual1Task = Assert.ThrowsAsync<Exception>(() => cache.Fetch("test1", testFetch.Fetch, null));
+            var actual2Task = Assert.ThrowsAsync<Exception>(() => cache.Fetch("test1", testFetch.Fetch, null));
+
+            var actual1 = await actual1Task;
+            var actual2 = await actual2Task;
+
+            Assert.Equal(1, testFetch.Counter);
+            Assert.Same(actual1, actual2);
+        }
+
+        [Fact]
+        public async Task PoolReturnsGetException()
+        {
+            PooledCache cache = new PooledCache(new TestDictionaryCache(delayTime: 500, throwOnSet: true));
+            var testFetch = new TestFecth();
+
+            var actual1Task = Assert.ThrowsAsync<Exception>(() => cache.Fetch("test1", testFetch.Fetch, null));
+            var actual2Task = Assert.ThrowsAsync<Exception>(() => cache.Fetch("test1", testFetch.Fetch, null));
+
+            var actual1 = await actual1Task;
+            var actual2 = await actual2Task;
+
+            Assert.Equal(1, testFetch.Counter);
+            Assert.Same(actual1, actual2);
+        }
+
         private class TestFecth
         {
             private readonly int _delayTime;
+            private readonly bool _throwException;
             private int _counter;
 
-            public TestFecth(int sleepTime = 0)
+            public TestFecth(int delayTime = 0, bool throwException = false)
             {
-                _delayTime = sleepTime;
+                _delayTime = delayTime;
+                _throwException = throwException;
             }
 
             public int Counter => _counter;
@@ -70,7 +140,15 @@ namespace PinaColada.Tests
                 {
                     await Task.Delay(_delayTime);
                 }
-                return _counter++;
+
+                var tmp = _counter++;
+
+                if (_throwException)
+                {
+                    throw new Exception();
+                }
+
+                return tmp;
             }
         }
     }

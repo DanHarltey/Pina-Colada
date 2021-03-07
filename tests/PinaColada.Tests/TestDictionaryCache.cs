@@ -8,6 +8,16 @@ namespace PinaColada.Tests
     internal class TestDictionaryCache : ICache
     {
         private readonly Dictionary<string, object> keyValue = new Dictionary<string, object>();
+        private readonly int _delayTime;
+        private readonly bool _throwOnGet;
+        private readonly bool _throwOnSet;
+
+        public TestDictionaryCache(int delayTime = 0, bool throwOnGet = false, bool throwOnSet = false)
+        {
+            _delayTime = delayTime;
+            _throwOnGet = throwOnGet;
+            _throwOnSet = throwOnSet;
+        }
 
         public Task<(bool, T)> Get<T>(string cacheKey)
         {
