@@ -14,7 +14,7 @@ namespace PinaColada.Tests
 
             var actual = await cacheToTest.Fetch("test1", testFetch.Fetch, null);
 
-            Assert.Equal(0, actual);
+            Assert.Equal(0, actual.Value);
             Assert.Equal(1, testFetch.Counter);
         }
 
@@ -27,9 +27,10 @@ namespace PinaColada.Tests
             var actual = await cacheToTest.Fetch("test1", testFetch.Fetch, null);
             var actual2 = await cacheToTest.Fetch("test1", testFetch.Fetch, null);
 
-            Assert.Equal(0, actual);
-            Assert.Equal(0, actual2);
-            Assert.Same(actual, actual2);
+            Assert.Equal(0, actual.Value);
+            Assert.Equal(0, actual2.Value);
+            Assert.NotSame(actual, actual2);
+            Assert.Same(actual.Value, actual2.Value);
             Assert.Equal(1, testFetch.Counter);
         }
 
@@ -45,8 +46,8 @@ namespace PinaColada.Tests
             var actual = await actualTask;
             var actual2 = await actual2Task;
 
-            Assert.Equal(0, actual);
-            Assert.Equal(0, actual2);
+            Assert.Equal(0, actual.Value);
+            Assert.Equal(0, actual2.Value);
             Assert.Same(actual, actual2);
             Assert.Equal(1, testFetch.Counter);
         }

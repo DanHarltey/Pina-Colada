@@ -16,9 +16,9 @@ namespace PinaColada
             _cache = cache;
         }
 
-        public async Task<T> Fetch<T>(string cacheKey, Func<Task<T>> createAction, TimeSpan? ttl)
+        public async Task<Result<T>> Fetch<T>(string cacheKey, Func<Task<T>> createAction, TimeSpan? ttl)
         {
-            var createdTask = new Task<Task<T>>(GetOrSet<T>, new CacheRequest<T>(cacheKey, createAction, ttl));
+            var createdTask = new Task<Task<Result<T>>>(GetOrSet<T>, new CacheRequest<T>(cacheKey, createAction, ttl));
             var createdTask2 = createdTask.Unwrap();
 
             var pooledTask = _requestPool.GetOrAdd(cacheKey, createdTask2);
@@ -39,27 +39,28 @@ namespace PinaColada
             }
             else
             {
-                return await (Task<T>)pooledTask;
+                return await (Task<Result<T>>)pooledTask;
             }
         }
 
-        private async Task<T> GetOrSet<T>(object obj)
+        private async Task<Result<T>> GetOrSet<T>(object obj)
         {
             var cacheRequest = (CacheRequest<T>)obj;
 
-            var cache = await _cache.Get<T>(cacheRequest.CacheKey);
+            var getResult = await _cache.TryGet<T>(cacheRequest.CacheKey);
 
-            if (cache.Item1)
+            if (getResult.CacheHit)
             {
-                return cache.Item2;
+                return getResult;
             }
 
             var createdObj = await cacheRequest.CreateAction();
 
             //TODO use a different thread
-            await _cache.Set(cacheRequest.CacheKey, createdObj, cacheRequest.TTL);
+            var setTask = _cache.Set(cacheRequest.CacheKey, createdObj, cacheRequest.TTL);
+            await setTask;
 
-            return createdObj;
+            return Result<T>.CaheHit(createdObj, setTask);
         }
 
         private class CacheRequest<T>

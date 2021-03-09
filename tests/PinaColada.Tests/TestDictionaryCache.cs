@@ -19,7 +19,7 @@ namespace PinaColada.Tests
             _throwOnSet = throwOnSet;
         }
 
-        public Task<(bool, T)> Get<T>(string cacheKey)
+        public Task<Result<T>> TryGet<T>(string cacheKey)
         {
             if(_throwOnGet)
             {
@@ -28,7 +28,14 @@ namespace PinaColada.Tests
 
             var found = keyValue.TryGetValue(cacheKey, out var obj);
 
-            return Task.FromResult( (found, (T)obj));
+            if(found)
+            {
+                return Result<T>.CaheHitTask((T)obj);
+            }
+            else
+            {
+                return Result<T>.CaheMissTask;
+            }
         }
 
         public Task Set<T>(string cacheKey, T obj, TimeSpan? ttl)

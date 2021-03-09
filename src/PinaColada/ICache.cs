@@ -7,8 +7,7 @@ namespace PinaColada
 {
     public interface ICache
     {
-        // this needs to be try get or something
-        Task<(bool, T)> Get<T>(string cacheKey);
+        Task<Result<T>> TryGet<T>(string cacheKey);
         Task Set<T>(string cacheKey, T obj, TimeSpan? ttl);
     }
 }
