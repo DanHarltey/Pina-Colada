@@ -60,7 +60,7 @@ namespace PinaColada
             var setTask = _cache.Set(cacheRequest.CacheKey, createdObj, cacheRequest.TTL);
             await setTask;
 
-            return Result<T>.CaheHit(createdObj, setTask);
+            return Result.CacheHit(createdObj, setTask);
         }
 
         private class CacheRequest<T>

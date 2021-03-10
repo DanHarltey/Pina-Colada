@@ -3,25 +3,32 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PinaColada.Tests
+namespace PinaColada.Tests.Helpers
 {
-    internal class TestDictionaryCache : ICache
+    internal class DictionaryCache : ICache
     {
         private readonly Dictionary<string, object> keyValue = new Dictionary<string, object>();
-        private readonly int _delayTime;
+        private readonly int _getDelay;
+        private readonly int _setDelay;
         private readonly bool _throwOnGet;
         private readonly bool _throwOnSet;
 
-        public TestDictionaryCache(int delayTime = 0, bool throwOnGet = false, bool throwOnSet = false)
+        public DictionaryCache(int getDelay = 0, int setDelay = 0, bool throwOnGet = false, bool throwOnSet = false)
         {
-            _delayTime = delayTime;
+            _getDelay = getDelay;
+            _setDelay = setDelay;
             _throwOnGet = throwOnGet;
             _throwOnSet = throwOnSet;
         }
 
-        public Task<Result<T>> TryGet<T>(string cacheKey)
+        public async Task<Result<T>> TryGet<T>(string cacheKey)
         {
-            if(_throwOnGet)
+            if (_getDelay != 0)
+            {
+                await Task.Delay(_getDelay);
+            }
+
+            if (_throwOnGet)
             {
                 throw new Exception();
             }
@@ -30,23 +37,27 @@ namespace PinaColada.Tests
 
             if(found)
             {
-                return Result<T>.CaheHitTask((T)obj);
+                return Result.CacheHit((T)obj);
             }
             else
             {
-                return Result<T>.CaheMissTask;
+                return Result<T>.CacheMiss;
             }
         }
 
-        public Task Set<T>(string cacheKey, T obj, TimeSpan? ttl)
+        public async Task Set<T>(string cacheKey, T obj, TimeSpan? ttl)
         {
+            if (_getDelay != 0)
+            {
+                await Task.Delay(_getDelay);
+            }
+
             if (_throwOnSet)
             {
                 throw new Exception();
             }
 
             keyValue.Add(cacheKey, obj);
-            return Task.CompletedTask;
         }
     }
 }

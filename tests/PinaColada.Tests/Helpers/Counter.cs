@@ -1,23 +1,25 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace PinaColada.Tests
+namespace PinaColada.Tests.Helpers
 {
-    internal class TestFetcher
+    internal class Counter : IEquatable<int>
     {
         private readonly int _delayTime;
         private readonly bool _throwException;
         private int _counter;
 
-        public TestFetcher(int delayTime = 0, bool throwException = false)
+        public Counter(int delayTime = 0, bool throwException = false)
         {
             _delayTime = delayTime;
             _throwException = throwException;
         }
 
-        public int Counter => _counter;
+        private Counter(int value) => _counter = value;
 
-        public async Task<object> Fetch()
+        public int Count => _counter;
+
+        public async Task<Counter> Increment()
         {
             if (_delayTime != 0)
             {
@@ -31,7 +33,13 @@ namespace PinaColada.Tests
                 throw new Exception();
             }
 
-            return tmp;
+            return new Counter(tmp);
+        }
+
+
+        bool IEquatable<int>.Equals(int other)
+        {
+            throw new NotImplementedException();
         }
     }
 }
