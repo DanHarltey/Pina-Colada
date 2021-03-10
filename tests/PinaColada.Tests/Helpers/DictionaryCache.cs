@@ -47,9 +47,9 @@ namespace PinaColada.Tests.Helpers
 
         public async Task Set<T>(string cacheKey, T obj, TimeSpan? ttl)
         {
-            if (_getDelay != 0)
+            if (_setDelay != 0)
             {
-                await Task.Delay(_getDelay);
+                await Task.Delay(_setDelay);
             }
 
             if (_throwOnSet)

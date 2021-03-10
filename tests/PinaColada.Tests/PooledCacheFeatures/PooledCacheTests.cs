@@ -3,7 +3,7 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace PinaColada.Tests
+namespace PinaColada.Tests.PooledCacheFeatures
 {
     public class PooledCacheTests
     {
