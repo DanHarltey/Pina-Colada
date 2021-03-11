@@ -30,7 +30,7 @@ namespace PinaColada.Tests.Helpers
 
             if (_throwOnGet)
             {
-                throw new Exception();
+                throw new InvalidOperationException();
             }
 
             var found = keyValue.TryGetValue(cacheKey, out var obj);
@@ -54,7 +54,7 @@ namespace PinaColada.Tests.Helpers
 
             if (_throwOnSet)
             {
-                throw new Exception();
+                throw new InvalidOperationException();
             }
 
             keyValue.Add(cacheKey, obj);

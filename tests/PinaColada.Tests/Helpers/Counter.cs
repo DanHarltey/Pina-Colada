@@ -30,7 +30,7 @@ namespace PinaColada.Tests.Helpers
 
             if (_throwException)
             {
-                throw new Exception();
+                throw new InvalidOperationException();
             }
 
             return new Counter(tmp);
