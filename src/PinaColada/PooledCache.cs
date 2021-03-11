@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace PinaColada
@@ -26,20 +24,16 @@ namespace PinaColada
             if (createdTask2 == pooledTask)
             {
                 // we added the task
+                createdTask.Start();
+
                 try
                 {
-                    createdTask.Start();
-
-                    var result = await createdTask2;
-
-                    _ = result.SetTask.ContinueWith(this.RemoveCacheKey, cacheKey);
-
-                    return result;
+                    return await createdTask2;
                 }
-                finally
+                catch
                 {
-                    // we must remove it
-                    _requestPool.TryRemove(cacheKey, out _);
+                    RemoveCacheKey(cacheKey);
+                    throw;
                 }
             }
             else
@@ -50,8 +44,8 @@ namespace PinaColada
 
         private async Task<Result<T>> GetOrSet<T>(object obj)
         {
-            var cacheRequest = (CacheRequest<T>)obj;
 
+            var cacheRequest = (CacheRequest<T>)obj;
             var getResult = await _cache.TryGet<T>(cacheRequest.CacheKey);
 
             if (getResult.CacheHit)
@@ -63,13 +57,20 @@ namespace PinaColada
 
             var setTask = _cache.Set(cacheRequest.CacheKey, createdObj, cacheRequest.TTL);
 
+            _ = setTask.ContinueWith(this.RemoveCacheKey, cacheRequest.CacheKey);
+
             return Result.CacheHit(createdObj, setTask);
         }
 
-        private void RemoveCacheKey(Task _, object cacheKey)
+        private void RemoveCacheKey(Task _, object cacheKey) => RemoveCacheKey((string)cacheKey);
+
+        private void RemoveCacheKey(string cacheKey)
         {
             // we must remove it
-            _requestPool.TryRemove((string)cacheKey, out _);
+            if (!_requestPool.TryRemove(cacheKey, out _))
+            {
+                throw new Exception();
+            }
         }
 
         private class CacheRequest<T>
