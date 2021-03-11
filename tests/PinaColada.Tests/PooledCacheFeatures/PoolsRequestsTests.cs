@@ -91,11 +91,43 @@ namespace PinaColada.Tests.PooledCacheFeatures
             var cacheToTest = new PooledCache(backingCache);
             var counter = new Counter();
 
-            var exception1 = await Assert.ThrowsAsync<InvalidOperationException>(() => cacheToTest.Fetch("test1", counter.Increment, null));
-            var exception2 = await Assert.ThrowsAsync<InvalidOperationException>(() => cacheToTest.Fetch("test1", counter.Increment, null));
+            var result1 = await cacheToTest.Fetch("test1", counter.Increment, null);
+            var exception1 = await Assert.ThrowsAsync<InvalidOperationException>(() => result1.SetTask);
 
+            var result2 = await cacheToTest.Fetch("test1", counter.Increment, null);
+            var exception2 = await Assert.ThrowsAsync<InvalidOperationException>(() => result2.SetTask);
+
+            // action called twice as it was never set in cache
             Assert.Equal(2, counter.Count);
+
+            // value was never set in cache
+            Assert.NotSame(result1.Value, result2.Value);
+
+            // Set task shouldn't be share
+            Assert.NotSame(result1.SetTask, result2.SetTask);
+
+            // exception shouldn't get cached
             Assert.NotSame(exception1, exception2);
+        }
+
+        [Fact]
+        public async Task CacheKeyIsRemovedOnlyAfterSetComplete()
+        {
+            var backingCache = new DictionaryCache(setDelay: 500);
+            var cacheToTest = new PooledCache(backingCache);
+            var counter = new Counter();
+
+
+            var result1 = await cacheToTest.Fetch("test1", counter.Increment, null);
+            
+            // the cache is still setting as it has a 500ms delay, this request should get pooled
+            var result2 = await cacheToTest.Fetch("test1", counter.Increment, null);
+
+            Assert.Same(result1.Value, result2.Value);
+            Assert.Same(result1.SetTask, result2.SetTask);
+
+            // action called once as it was pooled
+            Assert.Equal(1, counter.Count);
         }
     }
 }

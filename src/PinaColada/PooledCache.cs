@@ -29,11 +29,16 @@ namespace PinaColada
                 try
                 {
                     createdTask.Start();
-                    return await createdTask2;
+
+                    var result = await createdTask2;
+
+                    _ = result.SetTask.ContinueWith(this.RemoveCacheKey, cacheKey);
+
+                    return result;
                 }
                 finally
                 {
-                    // we most remove it
+                    // we must remove it
                     _requestPool.TryRemove(cacheKey, out _);
                 }
             }
@@ -56,11 +61,15 @@ namespace PinaColada
 
             var createdObj = await cacheRequest.CreateAction();
 
-            //TODO use a different thread
             var setTask = _cache.Set(cacheRequest.CacheKey, createdObj, cacheRequest.TTL);
-            await setTask;
 
             return Result.CacheHit(createdObj, setTask);
+        }
+
+        private void RemoveCacheKey(Task _, object cacheKey)
+        {
+            // we must remove it
+            _requestPool.TryRemove((string)cacheKey, out _);
         }
 
         private class CacheRequest<T>
